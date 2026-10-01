@@ -1,0 +1,25 @@
+{
+  "verifiedAt": "2026-10-01",
+  "mode": "read_only_rpc_and_unsigned_simulation",
+  "transactionsBroadcast": 0,
+  "walletSignaturesRequested": 0,
+  "mainnet": {
+    "programId": "6RqZ2jo91veL5WdfTxTGqwoeAxR4KU747Sq6a5rv9r2G",
+    "observedConfigSlot": 452379324,
+    "executable": true,
+    "configAccountBytes": 140,
+    "configZeroPaddingBytes": 5,
+    "createAndFinalizeSolOnlySimulation": "passed",
+    "simulationError": null
+  },
+  "devnet": {
+    "programId": "AyVtdNjHeyjz1Ko8yyMWCddgtEk6o3xS32dCWmXKDFyH",
+    "observedConfigSlot": 506377463,
+    "executable": true,
+    "configAccountBytes": 140,
+    "configZeroPaddingBytes": 5,
+    "createAndFinalizeSolOnlySimulation": "unsupported_instruction",
+    "simulationError": {"InstructionError": [1, {"Custom": 101}]}
+  },
+  "limits": ["No asset transfers were broadcast.", "No live two-wallet acceptance, funding, commit, release, cancellation or close run was performed.", "Advanced-asset liveness and policy were not certified."]
+}

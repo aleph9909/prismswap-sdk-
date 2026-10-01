@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tgz
+.env
+.env.*
+!.env.example
+*keypair*.json
+*.pem
+*.key
+coverage/

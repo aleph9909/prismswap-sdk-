@@ -1,0 +1,82 @@
+{
+  "name": "@prismswap/escrow-sdk",
+  "version": "0.1.0",
+  "description": "Connect any web UI to the PrismSwap Solana escrow with explicit wallet approval.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./session": {
+      "types": "./dist/session/index.d.ts",
+      "import": "./dist/session/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol.d.ts",
+      "import": "./dist/protocol.js"
+    },
+    "./wallet-standard": {
+      "types": "./dist/wallet-standard.d.ts",
+      "import": "./dist/wallet-standard.js"
+    }
+  },
+  "files": [
+    "dist",
+    "docs",
+    "contracts",
+    "fixtures",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "AGENTS.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p examples/web/tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/*.test.ts",
+    "check:security": "node scripts/security-check.mjs",
+    "check:package": "node scripts/package-check.mjs",
+    "check:browser": "node scripts/browser-check.mjs",
+    "check": "npm run build && npm run typecheck && npm test && npm run check:security && npm run check:package && npm run check:browser",
+    "example": "vite examples/web --host 127.0.0.1",
+    "example:build": "vite build examples/web",
+    "prepack": "npm run build",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@noble/hashes": "1.8.0",
+    "@solana-program/token": "0.12.0",
+    "@solana/kit": "6.10.0",
+    "@solana/web3.js": "1.98.4",
+    "@wallet-standard/app": "1.1.1",
+    "bs58": "6.0.0",
+    "buffer": "6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.11",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aleph9909/prismswap-sdk-.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aleph9909/prismswap-sdk-/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

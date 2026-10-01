@@ -1,0 +1,5 @@
+# Browser example
+
+From the repository root, run `npm ci` then `npm run example`. No .env file or application API token is required. Choose the network explicitly and connect a Wallet Standard wallet, create an offer, and exchange its public JSON with the counterparty. Both apps load the same terms. Mainnet create/finalize passed read-only simulation; the reference devnet program currently rejects the session instruction, so use a compatible alternative test deployment for devnet. Prepare and review each step; the payer approves every wallet signature. Use `Continue existing session` after creation. Recovery and known-signature checks are on the same page.
+
+The form uses classic SPL unit collectibles and SOL lamports; Token-2022 can be specified in valid imported offer JSON. Each side must contribute. The RPC and referenced program must be compatible and available. RPC observations do not declare platform lifecycle completion. The example persists offers, the latest confirmed receipt and the pending signature in this origin's browser storage. It sends transactions only after an explicit user review and wallet approval.

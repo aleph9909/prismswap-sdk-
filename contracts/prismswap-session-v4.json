@@ -1,0 +1,1488 @@
+{
+  "address": "6RqZ2jo91veL5WdfTxTGqwoeAxR4KU747Sq6a5rv9r2G",
+  "metadata": {
+    "name": "prismswap_session",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "create_session_v4",
+      "discriminator": [
+        179,
+        39,
+        27,
+        203,
+        222,
+        81,
+        223,
+        201
+      ],
+      "accounts": [
+        {
+          "name": "maker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "taker"
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "maker"
+              },
+              {
+                "kind": "account",
+                "path": "taker"
+              },
+              {
+                "kind": "arg",
+                "path": "nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "nonce",
+          "type": "u64"
+        },
+        {
+          "name": "maker_slot_count",
+          "type": "u8"
+        },
+        {
+          "name": "taker_slot_count",
+          "type": "u8"
+        },
+        {
+          "name": "maker_sol_amount",
+          "type": "u64"
+        },
+        {
+          "name": "taker_sol_amount",
+          "type": "u64"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        },
+        {
+          "name": "crank_bond_lamports",
+          "type": "u64"
+        },
+        {
+          "name": "trade_commitment",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "append_slots_v4",
+      "discriminator": [
+        254,
+        255,
+        77,
+        50,
+        66,
+        195,
+        136,
+        188
+      ],
+      "accounts": [
+        {
+          "name": "maker",
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "relations": [
+            "maker"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "specs",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "SlotSpecV4"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "finalize_manifest_v4",
+      "discriminator": [
+        251,
+        242,
+        246,
+        158,
+        138,
+        245,
+        82,
+        52
+      ],
+      "accounts": [
+        {
+          "name": "maker",
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "relations": [
+            "maker"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "deposit_asset_v4",
+      "discriminator": [
+        6,
+        179,
+        205,
+        251,
+        29,
+        191,
+        118,
+        173
+      ],
+      "accounts": [
+        {
+          "name": "depositor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "slot_index",
+          "type": "u8"
+        },
+        {
+          "name": "cnft_args",
+          "type": {
+            "option": {
+              "defined": {
+                "name": "CnftLeafArgsV4"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "start_accept_v4",
+      "discriminator": [
+        9,
+        18,
+        176,
+        235,
+        224,
+        130,
+        79,
+        180
+      ],
+      "accounts": [
+        {
+          "name": "taker",
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "relations": [
+            "taker"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "commit_trade_v4",
+      "discriminator": [
+        228,
+        145,
+        253,
+        246,
+        157,
+        129,
+        41,
+        212
+      ],
+      "accounts": [
+        {
+          "name": "taker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "maker",
+          "writable": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "relations": [
+            "maker",
+            "taker"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_treasury",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "release_asset_v4",
+      "discriminator": [
+        212,
+        197,
+        89,
+        238,
+        240,
+        101,
+        165,
+        83
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "relations": [
+            "maker",
+            "taker"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "maker",
+          "writable": true
+        },
+        {
+          "name": "taker",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "slot_index",
+          "type": "u8"
+        },
+        {
+          "name": "cnft_args",
+          "type": {
+            "option": {
+              "defined": {
+                "name": "CnftLeafArgsV4"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "cancel_session_v4",
+      "discriminator": [
+        190,
+        152,
+        31,
+        246,
+        243,
+        128,
+        253,
+        36
+      ],
+      "accounts": [
+        {
+          "name": "canceller",
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdraw_asset_v4",
+      "discriminator": [
+        154,
+        197,
+        123,
+        4,
+        32,
+        143,
+        173,
+        196
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "depositor",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "slot_index",
+          "type": "u8"
+        },
+        {
+          "name": "cnft_args",
+          "type": {
+            "option": {
+              "defined": {
+                "name": "CnftLeafArgsV4"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "close_session_v4",
+      "discriminator": [
+        94,
+        5,
+        156,
+        207,
+        61,
+        31,
+        90,
+        6
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "relations": [
+            "maker",
+            "taker"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.maker"
+              },
+              {
+                "kind": "account",
+                "path": "session.taker"
+              },
+              {
+                "kind": "account",
+                "path": "session.nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "maker",
+          "writable": true
+        },
+        {
+          "name": "taker",
+          "writable": true
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "TradeSession",
+      "discriminator": [
+        43,
+        20,
+        111,
+        188,
+        176,
+        148,
+        140,
+        69
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "AssetKind",
+      "repr": {
+        "kind": "rust"
+      },
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Spl"
+          },
+          {
+            "name": "Programmable"
+          },
+          {
+            "name": "Compressed"
+          },
+          {
+            "name": "Token2022"
+          },
+          {
+            "name": "Core"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AssetSlotV4",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "side",
+            "type": "u8"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "SlotStatus"
+              }
+            }
+          },
+          {
+            "name": "mint_or_asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "tree",
+            "type": "pubkey"
+          },
+          {
+            "name": "proof_size",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CnftLeafArgsV4",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "data_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "creator_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "index",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "trade_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "flat_fee_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "sol_leg_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "sol_leg_flat_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "fee_treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "nft_fee_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "sol_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SessionPhase",
+      "repr": {
+        "kind": "rust"
+      },
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Building"
+          },
+          {
+            "name": "MakerDepositing"
+          },
+          {
+            "name": "Open"
+          },
+          {
+            "name": "TakerDepositing"
+          },
+          {
+            "name": "Committed"
+          },
+          {
+            "name": "Cancelling"
+          },
+          {
+            "name": "Closed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SlotSpecV4",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "side",
+            "type": "u8"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "mint_or_asset_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "tree",
+            "type": "pubkey"
+          },
+          {
+            "name": "proof_size",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SlotStatus",
+      "repr": {
+        "kind": "rust"
+      },
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Empty"
+          },
+          {
+            "name": "Deposited"
+          },
+          {
+            "name": "Released"
+          },
+          {
+            "name": "Withdrawn"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TradeSession",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "maker",
+            "type": "pubkey"
+          },
+          {
+            "name": "taker",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "phase",
+            "type": {
+              "defined": {
+                "name": "SessionPhase"
+              }
+            }
+          },
+          {
+            "name": "maker_slot_count",
+            "type": "u8"
+          },
+          {
+            "name": "taker_slot_count",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "maker_sol_amount",
+            "type": "u64"
+          },
+          {
+            "name": "taker_sol_amount",
+            "type": "u64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "crank_bond_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "maker_fee_escrowed",
+            "type": "u64"
+          },
+          {
+            "name": "filled_slot_count",
+            "type": "u8"
+          },
+          {
+            "name": "trade_commitment",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "slots",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "AssetSlotV4"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "NotAuthorized",
+      "msg": "not authorized"
+    },
+    {
+      "code": 6001,
+      "name": "RequestedMismatch",
+      "msg": "requested account mismatch"
+    },
+    {
+      "code": 6002,
+      "name": "MathOverflow",
+      "msg": "math overflow"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidTaker",
+      "msg": "invalid taker"
+    },
+    {
+      "code": 6004,
+      "name": "MintNotInEscrowBasket",
+      "msg": "mint not found in escrow basket"
+    },
+    {
+      "code": 6005,
+      "name": "EscrowExpired",
+      "msg": "escrow expired"
+    },
+    {
+      "code": 6006,
+      "name": "EscrowNotActive",
+      "msg": "escrow is not active"
+    },
+    {
+      "code": 6007,
+      "name": "AssetMismatch",
+      "msg": "asset configuration mismatch"
+    },
+    {
+      "code": 6008,
+      "name": "TooManyItems",
+      "msg": "too many items"
+    },
+    {
+      "code": 6009,
+      "name": "TooManyNfts",
+      "msg": "too many nfts provided"
+    },
+    {
+      "code": 6010,
+      "name": "TooManyNftsPerSide",
+      "msg": "Escrow limited to 1 NFT per side during launch"
+    },
+    {
+      "code": 6011,
+      "name": "UnauthorizedCancel",
+      "msg": "unauthorized cancel attempt"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidFeeConfig",
+      "msg": "invalid fee configuration"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidTokenAmount",
+      "msg": "invalid token amount for nft transfer"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidFeeDestinationAccount",
+      "msg": "fee destination account must be a non-executable system account"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidWalletAccount",
+      "msg": "wallet account must be a non-executable system account"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidNftLegCount",
+      "msg": "invalid NFT leg count for launch invariant"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidSessionPhase",
+      "msg": "instruction not allowed in the current session phase"
+    },
+    {
+      "code": 6018,
+      "name": "SlotNotEmpty",
+      "msg": "slot is not empty"
+    },
+    {
+      "code": 6019,
+      "name": "SlotNotDeposited",
+      "msg": "slot holds no deposited asset"
+    },
+    {
+      "code": 6020,
+      "name": "WrongSlotOwner",
+      "msg": "wrong wallet for this slot"
+    },
+    {
+      "code": 6021,
+      "name": "SlotDescriptorMismatch",
+      "msg": "asset does not match the slot descriptor"
+    },
+    {
+      "code": 6022,
+      "name": "SessionNotFullyDeposited",
+      "msg": "session is not fully deposited"
+    },
+    {
+      "code": 6023,
+      "name": "SessionExpired",
+      "msg": "session expired"
+    },
+    {
+      "code": 6024,
+      "name": "DuplicateAssetInManifest",
+      "msg": "duplicate asset in session manifest"
+    },
+    {
+      "code": 6025,
+      "name": "LaunchSlotCapExceeded",
+      "msg": "slot count exceeds the launch cap"
+    },
+    {
+      "code": 6026,
+      "name": "CrankBondInsufficient",
+      "msg": "crank bond does not cover release reimbursements"
+    },
+    {
+      "code": 6027,
+      "name": "ManifestIncomplete",
+      "msg": "session manifest is incomplete"
+    },
+    {
+      "code": 6028,
+      "name": "InvalidSlotSpec",
+      "msg": "invalid slot spec"
+    },
+    {
+      "code": 6029,
+      "name": "InvalidTradeCommitmentV2",
+      "msg": "invalid Trade Authority V2 commitment"
+    },
+    {
+      "code": 6030,
+      "name": "UnsupportedTradeV2Version",
+      "msg": "unsupported Trade Authority V2 version"
+    },
+    {
+      "code": 6031,
+      "name": "InvalidTradeEscrowV2Account",
+      "msg": "invalid Trade Authority V2 escrow account"
+    },
+    {
+      "code": 6032,
+      "name": "TradeEscrowV2Terminal",
+      "msg": "Trade Authority V2 escrow is already terminal"
+    },
+    {
+      "code": 6033,
+      "name": "InvalidTradeExecutionPlanV2",
+      "msg": "invalid Trade Authority V2 execution plan"
+    },
+    {
+      "code": 6034,
+      "name": "InvalidTradeFundingStateV2",
+      "msg": "invalid Trade Authority V2 funding state"
+    },
+    {
+      "code": 6035,
+      "name": "InvalidTradeAcceptanceStateV2",
+      "msg": "invalid Trade Authority V2 acceptance state"
+    },
+    {
+      "code": 6036,
+      "name": "TradeAcceptanceAlreadyRecorded",
+      "msg": "taker acceptance is already recorded"
+    },
+    {
+      "code": 6037,
+      "name": "TradeAcceptanceExpired",
+      "msg": "the execution plan has expired for acceptance"
+    },
+    {
+      "code": 6038,
+      "name": "TradeAcceptanceActorUnauthorized",
+      "msg": "only the canonical taker may accept the execution plan"
+    },
+    {
+      "code": 6039,
+      "name": "TradeAcceptanceNotRecorded",
+      "msg": "valid taker acceptance has not been recorded"
+    },
+    {
+      "code": 6040,
+      "name": "TradeMakerSolAlreadyDeposited",
+      "msg": "maker SOL is already deposited"
+    },
+    {
+      "code": 6041,
+      "name": "TradeMakerAssetAlreadyDeposited",
+      "msg": "maker asset is already deposited"
+    },
+    {
+      "code": 6042,
+      "name": "TradeMakerSolNotRequired",
+      "msg": "the execution plan requires no maker SOL"
+    },
+    {
+      "code": 6043,
+      "name": "TradeMakerAssetNotSupported",
+      "msg": "the maker asset kind is not supported by this deposit instruction"
+    },
+    {
+      "code": 6044,
+      "name": "TradePlanExpired",
+      "msg": "the Trade Authority V2 execution plan has expired"
+    },
+    {
+      "code": 6045,
+      "name": "InvalidTradeCustodyTokenAccount",
+      "msg": "invalid Trade Authority V2 custody token account"
+    },
+    {
+      "code": 6046,
+      "name": "UnsupportedTradeToken2022Extension",
+      "msg": "unsupported Token-2022 mint extension"
+    },
+    {
+      "code": 6047,
+      "name": "UnexpectedTradeCustodyBalance",
+      "msg": "unexpected Trade Authority V2 custody token balance"
+    },
+    {
+      "code": 6048,
+      "name": "TradeMakerCancelAfterExpiration",
+      "msg": "maker cancellation must begin before plan expiration"
+    },
+    {
+      "code": 6049,
+      "name": "TradeMakerRecoveryBeforeExpiration",
+      "msg": "maker recovery cannot begin before plan expiration"
+    },
+    {
+      "code": 6050,
+      "name": "TradeMakerExitAlreadyInitiated",
+      "msg": "a maker exit has already been initiated"
+    },
+    {
+      "code": 6051,
+      "name": "TradeMakerExitNotInitiated",
+      "msg": "a maker exit has not been initiated"
+    },
+    {
+      "code": 6052,
+      "name": "TradeMakerExitActorUnauthorized",
+      "msg": "the signer is not authorized for this maker exit"
+    },
+    {
+      "code": 6053,
+      "name": "TradeMakerSolNotDeposited",
+      "msg": "maker SOL principal is not deposited"
+    },
+    {
+      "code": 6054,
+      "name": "TradeMakerAssetNotDeposited",
+      "msg": "maker asset principal is not deposited"
+    },
+    {
+      "code": 6055,
+      "name": "TradeMakerSolPrincipalUnavailable",
+      "msg": "maker SOL principal is unavailable while preserving custody rent"
+    },
+    {
+      "code": 6056,
+      "name": "TradeMakerTokenPrincipalUnavailable",
+      "msg": "maker token principal is unavailable"
+    },
+    {
+      "code": 6057,
+      "name": "InvalidTradeMakerRefundDestination",
+      "msg": "invalid maker refund destination"
+    },
+    {
+      "code": 6058,
+      "name": "TradeTakerSolAlreadyDeposited",
+      "msg": "taker SOL is already deposited"
+    },
+    {
+      "code": 6059,
+      "name": "TradeTakerAssetAlreadyDeposited",
+      "msg": "taker asset is already deposited"
+    },
+    {
+      "code": 6060,
+      "name": "TradeTakerSolNotRequired",
+      "msg": "the execution plan requires no taker SOL"
+    },
+    {
+      "code": 6061,
+      "name": "TradeTakerAssetNotSupported",
+      "msg": "the taker asset kind is not supported by this deposit instruction"
+    },
+    {
+      "code": 6062,
+      "name": "TradeTakerFundingActorUnauthorized",
+      "msg": "only the canonical taker may fund the execution plan"
+    },
+    {
+      "code": 6063,
+      "name": "TradeSettlementActorUnauthorized",
+      "msg": "only the canonical maker or taker may settle the trade"
+    },
+    {
+      "code": 6064,
+      "name": "TradeSettlementRequiresFullFunding",
+      "msg": "both canonical participants must be fully funded before settlement"
+    },
+    {
+      "code": 6065,
+      "name": "TradeSettlementAssetNotSupported",
+      "msg": "the planned settlement asset kind is not supported"
+    },
+    {
+      "code": 6066,
+      "name": "TradeSettlementSourceMismatch",
+      "msg": "invalid canonical settlement custody source"
+    },
+    {
+      "code": 6067,
+      "name": "TradeSettlementDestinationMismatch",
+      "msg": "invalid canonical settlement beneficiary destination"
+    },
+    {
+      "code": 6068,
+      "name": "TradeSettlementPrincipalUnavailable",
+      "msg": "planned settlement principal is unavailable"
+    },
+    {
+      "code": 6069,
+      "name": "TradeSettlementBalanceMismatch",
+      "msg": "settlement did not move the exact planned principal"
+    },
+    {
+      "code": 6070,
+      "name": "TradeTakerWithdrawalActorUnauthorized",
+      "msg": "the signer is not authorized to return taker principal"
+    },
+    {
+      "code": 6071,
+      "name": "TradeTakerSolNotDeposited",
+      "msg": "taker SOL principal is not deposited"
+    },
+    {
+      "code": 6072,
+      "name": "TradeTakerAssetNotDeposited",
+      "msg": "taker asset principal is not deposited"
+    },
+    {
+      "code": 6073,
+      "name": "TradeTakerSolPrincipalUnavailable",
+      "msg": "taker SOL principal is unavailable while preserving custody rent"
+    },
+    {
+      "code": 6074,
+      "name": "TradeTakerTokenPrincipalUnavailable",
+      "msg": "taker token principal is unavailable"
+    },
+    {
+      "code": 6075,
+      "name": "InvalidTradeTakerRefundDestination",
+      "msg": "invalid taker refund destination"
+    },
+    {
+      "code": 6076,
+      "name": "TradeExitCompletionActorUnauthorized",
+      "msg": "the signer is not authorized to complete this trade exit"
+    },
+    {
+      "code": 6077,
+      "name": "TradeExitPrincipalRemaining",
+      "msg": "planned principal remains deposited"
+    },
+    {
+      "code": 6078,
+      "name": "TradeExitCompletionInvalidLifecycle",
+      "msg": "trade exit completion requires cancellation or recovery lifecycle"
+    },
+    {
+      "code": 6079,
+      "name": "LegacyCreationDisabled",
+      "msg": "new legacy escrow creation is disabled; use canonical Trade Authority"
+    }
+  ]
+}
