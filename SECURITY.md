@@ -1,0 +1,13 @@
+# Security
+
+This package contains public program addresses, protocol/ABI data, unsigned builders and an explicit wallet-signing boundary. No private keys, RPC/DAS service credentials, database URLs, application tokens or Oracle secrets are needed for the direct path. Never pass a seed phrase or keypair to the client. Browser RPC access must use a public endpoint or an appropriately restricted public provider token; privileged service keys stay server-side.
+
+Before signing, verify the actual cluster/program, participants, immutable terms, exact asset principal, destinations, fees and current action. The direct client performs account owner/PDA/commitment checks, conservative collectible admission, simulation, review/message binding and a state/config re-read. Unknown or malformed accounts fail closed. Simulations cannot guarantee future asset policy or delivery liveness.
+
+Use a durable pending store, explicit approvals, and a single wallet signing coordinator. The default in-memory store is for short-lived tests; use the supplied browser adapter or an equivalent persistent host store in production. Storage contains public signatures/terms, not keys. Keep your application's origin and local storage protected against XSS. Do not log raw credentials, RPC URLs containing secrets, authorization headers, or wallet provider errors.
+
+The secret scanner checks current source and every retained Git blob for common credential patterns, keypair files, obsolete private references, and accidental environment files; it does not certify that every possible secret has been detected. Removing old Git history does not revoke previously exposed credentials. Rotate/revoke any credentials that were exposed separately; this SDK work does not change them.
+
+The release dependency check (`npm audit --omit=dev`, 2026-10-01) reports zero high/critical advisories and four moderate dependency entries through `@solana/web3.js` → `jayson` → `stream-json`/`uuid`. The vulnerable native token helper was removed in favor of official token codecs. Legacy Node streaming transport advisories remain an upstream dependency limitation; a clean secret scan does not imply a clean vulnerability audit. Review those transitive packages for Node-hosted integrations and upgrade when a compatible upstream fix is available.
+
+For a vulnerability, use the repository's private security reporting channel if available. Do not post secret values, seeds, or exploit credentials in a public issue. If private reporting is unavailable, contact the repository owner privately. This prerelease has not received an independent security audit or a live two-wallet certification.

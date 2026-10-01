@@ -1,0 +1,66 @@
+{
+  "referenceCommit": "bae28f62ede0088662fe061318d1c7bd93e76a4e",
+  "note": "Reference content hashes before local import and documentation adaptations. No private history was imported.",
+  "files": [
+    {
+      "file": "src/session/index.ts",
+      "referenceSha256": "6500e78f18c67f8f60d0375b72f14258eb7deab3b810262e4bdf04d03235a867"
+    },
+    {
+      "file": "src/session/types.ts",
+      "referenceSha256": "5e5531b69ad89dc78c0adbe605b0b624d236b309f0a3daa3f9f6127b82b6e7d2"
+    },
+    {
+      "file": "src/session/pda.ts",
+      "referenceSha256": "5dc5ed78972dd6e7a6e6ae1087e48616f4d90fce525c9859f72bb0172d08a7c3"
+    },
+    {
+      "file": "src/session/layout.ts",
+      "referenceSha256": "3ccd2f25a097461b9a67c6fb996d8ea6c6a6776cd176f50f522c04e3b751ba83"
+    },
+    {
+      "file": "src/session/instructions.ts",
+      "referenceSha256": "7c822ec1d2e762c6ba4ee3bae81a5be2a73850883ea6a9867f789a8ef6a50b08"
+    },
+    {
+      "file": "src/session/planner.ts",
+      "referenceSha256": "23aa6ea9bc042250431988735e28850eca61ddc6001c696353c9757968707165"
+    },
+    {
+      "file": "src/session/fees.ts",
+      "referenceSha256": "455f69057f97751f04d7c634f5238ca2470325baa0ecd69a932eabe101751946"
+    },
+    {
+      "file": "src/session/commit_lookup.ts",
+      "referenceSha256": "2afa7f4b8384ecd1fd7b1015af6cd5bf453e9e08c782b92ebd59bf9dd01ef085"
+    },
+    {
+      "file": "src/internal/program-ids.ts",
+      "referenceSha256": "8200ff317af23d6960ceb708d181d9fe33f176c7da05c1057f71f10bc48efe7f"
+    },
+    {
+      "file": "src/internal/accounts.ts",
+      "referenceSha256": "ba147835e270c4787e8fc63e3beb58affc13107f388413d3f43195ed21298b87"
+    },
+    {
+      "file": "src/internal/instruction-convert.ts",
+      "referenceSha256": "45ad153ea3f640043dc4b7081f036073c0ddfd80bbf4c63949e6ee734da73f85"
+    },
+    {
+      "file": "src/internal/buffer-utils.ts",
+      "referenceSha256": "938b87832fc4bef7397b8308da4a0a189a7504add57529d4628b3df2d76aa9bc"
+    },
+    {
+      "file": "src/protocol.ts",
+      "referenceSha256": "9f65b95eb0506126daa7945f2bf16c21cc0049a1fe3f79ac4542652365ed60a4"
+    },
+    {
+      "file": "src/diagnostics.ts",
+      "referenceSha256": "bf99d301351a1329f2f5a9d2efcd8ea068ae0858e304a53a01615a2aba788b64"
+    },
+    {
+      "file": "src/entitlement.ts",
+      "referenceSha256": "9fb89698fb08f573792082de97e3a179d63d295304d297899b6ac58cf245cbbe"
+    }
+  ]
+}

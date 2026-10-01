@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PrismSwap integration example</title></head>
+<body><main>
+  <p class="eyebrow">PRISMSWAP · DEVELOPER EXAMPLE</p><h1>Your UI. PrismSwap escrow.</h1>
+  <p>Prepare and review one step at a time. Your wallet approves every transaction.</p>
+  <section><h2>1. Connect</h2>
+    <div class="grid"><label>Network<select id="cluster"><option value="" selected disabled>Choose a network</option><option value="mainnet-beta">Mainnet (real assets)</option><option value="devnet">Devnet (compatible deployment required)</option></select></label><label>RPC endpoint<input id="rpc" placeholder="Select a network first"></label></div>
+    <label>Program address<input id="program" placeholder="Select a network or specify a compatible deployment"></label>
+    <p class="hint">Mainnet create/finalize has passed read-only simulation. The reference devnet deployment currently rejects the session instruction; use a compatible test deployment before testing there.</p>
+    <label>Wallet<select id="wallets"></select></label><button id="detect">Refresh wallet list</button><button id="connect">Connect selected wallet</button><p id="account">No wallet connected.</p>
+  </section>
+  <section><h2>2. Set the terms</h2>
+    <label>Taker address<input id="taker" placeholder="Counterparty Solana public key"></label>
+    <div class="grid"><label>Maker collectible mints<textarea id="makerMints" placeholder="One standard collectible mint per line"></textarea></label><label>Taker collectible mints<textarea id="takerMints" placeholder="One standard collectible mint per line"></textarea></label></div>
+    <div class="grid"><label>Maker SOL in lamports<input id="makerSol" value="0" inputmode="numeric"></label><label>Taker SOL in lamports<input id="takerSol" value="0" inputmode="numeric"></label></div>
+    <p class="hint">1 SOL = 1,000,000,000 lamports. This example uses classic SPL collectibles; each token leg transfers one collectible. Each side must contribute.</p>
+    <button id="newOffer">Create offer JSON</button>
+    <label>Offer JSON<textarea id="offer" rows="10" placeholder="Paste shared offer JSON here to load the same terms in the taker UI."></textarea></label>
+    <button id="loadOffer">Load shared offer</button><button id="copyOffer">Copy offer JSON</button>
+  </section>
+  <section><h2>3. Prepare and approve</h2>
+    <label>Action<select id="action"><option value="continue">Continue existing session</option><option value="create">Create a new session (maker)</option><option value="cancel">Cancel / return deposits</option><option value="claim">Claim incoming collectibles</option></select></label>
+    <button id="prepare">Prepare next step</button><button id="sign" disabled>Review and approve in wallet</button><button id="checkPending">Check pending signature</button>
+    <pre id="review">No transaction prepared.</pre><p id="status" role="status">No assets have moved.</p>
+  </section>
+  <p class="hint">RPC observations are chain evidence. This standalone example does not report PrismSwap platform lifecycle completion. Advanced asset adapters, API onboarding, hosted widgets and mobile integrations are future work.</p>
+</main><script type="module" src="/src/main.ts"></script></body></html>
