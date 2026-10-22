@@ -40,7 +40,7 @@ bind('prepare',async()=>{
   resetStep();if(!client||!wallet||!offer)throw new Error('CONNECT_AND_LOAD_OFFER_FIRST')
   const prepared=await client.prepareNext(offer,wallet.publicKey,field('action') as PrismSwapAction)
   if(!prepared){show('No next step for this wallet. The counterparty may need to act.');return}
-  step=prepared;el('review').textContent=pretty({action:step.group.userFacing,cluster:offer.cluster,program:offer.programId,session:step.session.toBase58(),payer:step.payer.toBase58(),terms:offer,protocolFees:step.fees,chainEvidence:'RPC observation; platform completion is not asserted'})
+  step=prepared;el('review').textContent=pretty({action:step.group.userFacing,signingPlan:step.signingPlan,cluster:offer.cluster,program:offer.programId,session:step.session.toBase58(),payer:step.payer.toBase58(),terms:offer,protocolFees:step.fees,chainEvidence:'RPC observation; platform completion is not asserted'})
   el<HTMLButtonElement>('sign').disabled=false;show('Simulation passed. Review the terms and the current step.')
 })
 bind('sign',async()=>{

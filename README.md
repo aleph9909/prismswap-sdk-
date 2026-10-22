@@ -77,7 +77,7 @@ if (step) {
 }
 ```
 
-After every confirmed step, prepare again using `'continue'`. There is one wallet approval per step. A `null` step means this wallet has no next action; it can mean the counterparty must act. Existing wallet adapters can be used by passing `{ publicKey, signTransaction }`; see [wallet integration](docs/wallets.md).
+After every confirmed step, prepare again using `'continue'`. There is one wallet approval per step; a standard collectible step can include up to three transfers. A `null` step means this wallet has no next action; it can mean the counterparty must act. Existing wallet adapters can be used by passing `{ publicKey, signTransaction }`; see [wallet integration](docs/wallets.md).
 
 ## What works now
 

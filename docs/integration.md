@@ -18,7 +18,7 @@ const receipt = await client.executeStep(step, wallet, showApprovalDialog)
 saveReceipt(receipt)
 ```
 
-`action` is `'create'`, `'continue'`, `'cancel'` or `'claim'`. `create` is an explicit first maker action. `continue` requires an existing session. The client re-reads state, checks the immutable terms and next signer, selects only an unfinished leg, builds idempotent destination ATA setup, obtains a blockhash and simulates before exposing a prepared transaction. The prepared step includes protocol fee math and estimated session rent. Network and destination-account creation fees remain separate.
+`action` is `'create'`, `'continue'`, `'cancel'` or `'claim'`. `create` is an explicit first maker action. `continue` requires an existing session. The client re-reads state, checks the immutable terms and next signer, selects only unfinished in-scope transfers from an existing planner group, builds idempotent destination ATA setup, obtains a blockhash and simulates before exposing a prepared transaction. The prepared step includes protocol fee math and estimated session rent. Network and destination-account creation fees remain separate.
 
 The host's review callback must return `true` to request a wallet signature. Execution verifies that the transaction and displayed terms have not changed, rechecks the RPC/program identity, re-reads state and fees, and checks blockhash validity. Prepared steps are single use. A declined/expired/changed step must be prepared again after the user's next explicit action.
 
@@ -30,9 +30,9 @@ Every call executes one transaction. The SDK does not automatically loop, sign b
 | --- | --- |
 | Account absent | Only explicit maker `create`; absence is not completion |
 | Building | Maker resumes the original manifest and finalizes it |
-| MakerDepositing | Maker deposits the next unfinished collectible |
+| MakerDepositing | Maker deposits the next unfinished group of collectibles |
 | Open | Taker records acceptance; maker waits |
-| TakerDepositing | Taker deposits the next unfinished collectible, then commits |
+| TakerDepositing | Taker deposits unfinished collectible groups, then commits |
 | Committed | Payer delivers unfinished collectibles to fixed counterparties, then closes |
 | Cancelling | Payer returns unfinished deposits to their original owners, then closes |
 
@@ -43,3 +43,13 @@ Maker SOL leaves the wallet at creation. Taker SOL and the taker protocol fee le
 Use a durable pending store, save confirmed receipts, render the full offer and current action, keep recovery accessible, and use a compatible deployed program. Browser storage is one reasonable receipt adapter; server or desktop hosts can implement `PendingTransactionStore` themselves. Never call `createOffer` again to retry the same trade.
 
 This direct path observes chain state and does not create a PrismSwap platform trade record. If you later add platform API/Oracle integration, only authenticated Oracle-backed platform state may declare platform lifecycle completion. The package's protocol subpath contains the canonical commitment contract, not an activated API service.
+
+## Grouped signing and measurements
+
+A standard collectible step can contain up to three existing planner transfers. Completed slots are removed before review. Incoming-only claims filter every slot by its fixed recipient, including groups containing transfers to both participants. Packing never crosses lifecycle/authorization boundaries and every prepared transaction is still simulated and explicitly reviewed.
+
+`step.signingPlan` describes `transactionsInThisStep` (always 1), `collectiblesInThisStep`, and `knownRemainingTransactions` for this actor's current action, including the current step. Maker funding excludes the later counterparty journey. Taker completion includes the planned delivery/close tail; incoming-only claims exclude other recipients' transfers. Counts derive from current state and may change on retry or a newer observation; `additionalTransactionsMayBeRequired` is always true. Show these as currently planned counts, not a guaranteed total or wallet popup count. The example exposes this data in its review.
+
+An optional `onSigningMetric` constructor callback receives bounded counters for reviews, wallet requests, signed transactions, broadcast attempts, confirmations, submissions needing reconciliation, and reconciliation results. `elapsedMs` starts at client construction. Counters are per client instance; hosts can attach their own basket/wallet context and retain events across a reload. Consumer errors are isolated from transaction execution. No addresses, signatures, transaction bytes, credentials or arbitrary error messages are included.
+
+One wallet request is counted separately from the number of signed transactions. `broadcast` counts calls to the RPC, not proof of landing. `uncertain` reports a submission/confirmation failure requiring reconciliation, not proof of transaction failure. `reconciledConfirmed` is separate from `confirmed`, so a later status check does not inflate the live confirmation count. The direct client does not initiate wallet authentication; host sign-in messages must be measured separately. These diagnostics do not operate delivery services or enable native batch signing.

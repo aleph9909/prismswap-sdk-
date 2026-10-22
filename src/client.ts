@@ -5,6 +5,7 @@ import { byteFingerprint, CLUSTER_GENESIS_HASHES, readPrismSwapConfig, type Pris
 import { offerCommitment, offerPlanInput, validateOffer, type PrismSwapOffer, type PrismSwapCluster } from './offers.js'
 import { memoryPendingStore, PrismSwapSubmissionError, type PendingTransaction, type PendingTransactionStore } from './pending.js'
 import { toTransactionInstruction } from './internal/instruction-convert.js'
+import { createSigningMetrics, type SigningMetric } from './signing-metrics.js'
 import {
   SessionPhase, SlotStatus, buildSessionPlan, buildSessionPlanFromState,
   buildCancelPlan, buildSessionFeeBreakdown, decodeTradeSession, deriveSessionPda,
@@ -31,23 +32,32 @@ export type PreparedPrismSwapStep = {
   readonly observedSlot: number
   readonly fees: ReturnType<typeof buildSessionFeeBreakdown>
   readonly chainAuthority: 'rpc'
+  /** Current plan only; retries or a newer chain observation may change the remainder. */
+  readonly signingPlan: {
+    readonly transactionsInThisStep: 1
+    readonly collectiblesInThisStep: number
+    readonly knownRemainingTransactions: number
+    readonly additionalTransactionsMayBeRequired: true
+  }
 }
 type PreparedGuard = { readonly message: string; readonly semantics: string; readonly state: string | null; readonly config: string; used: boolean }
 const preparedGuards = new WeakMap<PreparedPrismSwapStep, PreparedGuard>()
 const equalBytes = (a: Uint8Array,b: Uint8Array) => a.length === b.length && a.every((v,i) => b[i] === v)
 function semanticFingerprint(step: PreparedPrismSwapStep): string {
-  return JSON.stringify({offer:step.offer,session:step.session.toBase58(),payer:step.payer.toBase58(),group:step.group,fees:step.fees,blockhash:step.blockhash,lastValidBlockHeight:step.lastValidBlockHeight,observedSlot:step.observedSlot},(_k,v) => typeof v === 'bigint' ? v.toString() : v)
+  return JSON.stringify({offer:step.offer,session:step.session.toBase58(),payer:step.payer.toBase58(),group:step.group,fees:step.fees,signingPlan:step.signingPlan,blockhash:step.blockhash,lastValidBlockHeight:step.lastValidBlockHeight,observedSlot:step.observedSlot},(_k,v) => typeof v === 'bigint' ? v.toString() : v)
 }
 
-/** Reduce a packed token group to one unfinished leg, so partial deposits never replay. */
-function oneLeg(group: SessionTxGroup, state: TradeSessionState, status: number): SessionTxGroup | null {
-  const position = group.slotIndexes.findIndex(i => state.slots[i]?.status === status)
-  if (position < 0) return null
-  const index = group.slotIndexes[position]
+/** Retain the planner's pack, removing completed or out-of-scope slots before signing. */
+function unfinishedGroup(group: SessionTxGroup, state: TradeSessionState, status: number, eligible: (index: number) => boolean = () => true): SessionTxGroup | null {
+  const positions = group.slotIndexes.flatMap((index, position) => state.slots[index]?.status === status && eligible(index) ? [position] : [])
+  if (!positions.length) return null
   if (group.instructions.length !== group.slotIndexes.length) throw new Error('UNSUPPORTED_PACKED_GROUP')
-  const mint = state.slots[index].mintOrAssetId
+  if (positions.length === group.slotIndexes.length) return group
+  const indexes = positions.map(position => group.slotIndexes[position])
+  const mints = new Set(indexes.map(index => state.slots[index].mintOrAssetId.toBase58()))
   const verb = group.phase === 'release' ? 'Deliver' : group.phase === 'withdraw' ? 'Return' : 'Deposit'
-  return { ...group, label:group.label+':slot-'+index, slotIndexes: [index], instructions: [group.instructions[position]], ataCreations: group.ataCreations.filter(a => a.mint.equals(mint)), userFacing:{title:`${verb} collectible ${index+1}`,detail:group.phase==='release'?'Delivers this one collectible to its fixed recipient.':group.phase==='withdraw'?'Returns this one collectible to its original depositor.':'Moves this one collectible into the session vault.'} }
+  const noun = indexes.length === 1 ? 'collectible' : 'collectibles'
+  return { ...group, label:group.label+':slots-'+indexes.join('-'), slotIndexes:indexes, instructions:positions.map(position => group.instructions[position]), ataCreations:group.ataCreations.filter(a => mints.has(a.mint.toBase58())), userFacing:{title:`${verb} ${indexes.length} ${noun}`,detail:group.phase==='release'?`Delivers ${indexes.length} ${noun} to their fixed recipients.`:group.phase==='withdraw'?`Returns ${indexes.length} ${noun} to their original depositors.`:`Moves ${indexes.length} ${noun} into the session vault.`} }
 }
 /** Select only what the present session phase permits. No wallet or network side effects. */
 export function nextSessionGroup(plan: SessionTxPlan, state: TradeSessionState | null, actor: PublicKey, action: PrismSwapAction): SessionTxGroup | null {
@@ -68,20 +78,20 @@ export function nextSessionGroup(plan: SessionTxPlan, state: TradeSessionState |
   }
   if (state.phase === SessionPhase.MakerDepositing) {
     if (!maker) return null
-    for (const g of plan.groups.filter(g => g.phase === 'makerDeposit')) { const leg = oneLeg(g,state,SlotStatus.Empty); if (leg) return leg }
+    for (const g of plan.groups.filter(g => g.phase === 'makerDeposit')) { const group = unfinishedGroup(g,state,SlotStatus.Empty); if (group) return group }
     return null
   }
   if (state.phase === SessionPhase.Open) return taker ? plan.groups.find(g => g.phase === 'startAccept') ?? null : null
   if (state.phase === SessionPhase.TakerDepositing) {
     if (!taker) return null
-    for (const g of plan.groups.filter(g => g.phase === 'takerDeposit')) { const leg = oneLeg(g,state,SlotStatus.Empty); if (leg) return leg }
+    for (const g of plan.groups.filter(g => g.phase === 'takerDeposit')) { const group = unfinishedGroup(g,state,SlotStatus.Empty); if (group) return group }
     return plan.groups.find(g => g.phase === 'commit') ?? null
   }
   if (state.phase === SessionPhase.Committed || state.phase === SessionPhase.Cancelling) {
     const phase = state.phase === SessionPhase.Committed ? 'release' : 'withdraw'
     for (const g of plan.groups.filter(g => g.phase === phase)) {
-      const leg = oneLeg(g,state,SlotStatus.Deposited)
-      if (leg && (action !== 'claim' || (leg.slotIndexes[0] < plan.makerSlotCount ? taker : maker))) return leg
+      const group = unfinishedGroup(g,state,SlotStatus.Deposited,index => action !== 'claim' || (index < plan.makerSlotCount ? taker : maker))
+      if (group) return group
     }
     if (action === 'claim' && state.slots.some(s => s.status === SlotStatus.Deposited)) return null
     return plan.groups.find(g => g.phase === 'close') ?? null
@@ -89,12 +99,33 @@ export function nextSessionGroup(plan: SessionTxPlan, state: TradeSessionState |
   throw new Error('UNSUPPORTED_SESSION_PHASE')
 }
 
+/** Count the same filtered groups that this actor's action will execute, including this step. */
+export function knownRemainingSessionTransactions(plan: SessionTxPlan, state: TradeSessionState | null, actor: PublicKey, action: PrismSwapAction, next: SessionTxGroup): number {
+  const index = plan.groups.findIndex(g => g.label === next.label || next.label.startsWith(g.label + ':slots-'))
+  // A complete Building manifest may need a standalone finalize not in the original packed plan.
+  const tail = index >= 0 ? plan.groups.slice(index) : [next, ...plan.groups.filter(g => g.phase === 'makerDeposit')]
+  const makerFunding = action !== 'cancel' && !plan.groups.some(g => g.phase === 'cancel') && (!state || state.phase === SessionPhase.Building || state.phase === SessionPhase.MakerDepositing)
+  let count = 0
+  for (const group of tail) {
+    if (makerFunding && group.signerRole !== 'maker') continue
+    if (state && (group.phase === 'makerDeposit' || group.phase === 'takerDeposit') && !unfinishedGroup(group,state,SlotStatus.Empty)) continue
+    if (state && (group.phase === 'withdraw' || group.phase === 'release' && state.phase === SessionPhase.Committed)) {
+      if (!unfinishedGroup(group,state,SlotStatus.Deposited,i => action !== 'claim' || (i < plan.makerSlotCount ? actor.equals(plan.taker) : actor.equals(plan.maker)))) continue
+    }
+    if (group.phase === 'close' && action === 'claim' && state?.slots.some((s,i) => s.status === SlotStatus.Deposited && !(i < plan.makerSlotCount ? actor.equals(plan.taker) : actor.equals(plan.maker)))) continue
+    count++
+  }
+  return count
+}
+
 export class PrismSwapClient {
   readonly programId: PublicKey
   readonly pendingStore: PendingTransactionStore
   private busy = false
   private readonly minSlots = new Map<string,number>()
-  constructor(readonly options: { readonly connection: Connection; readonly programId: string | PublicKey; readonly cluster: PrismSwapCluster; readonly expectedGenesisHash?: string; readonly pendingStore?: PendingTransactionStore }) {
+  private readonly metrics
+  constructor(readonly options: { readonly connection: Connection; readonly programId: string | PublicKey; readonly cluster: PrismSwapCluster; readonly expectedGenesisHash?: string; readonly pendingStore?: PendingTransactionStore; readonly onSigningMetric?: (metric: SigningMetric) => void }) {
+    this.metrics = createSigningMetrics(options.onSigningMetric)
     this.programId = new PublicKey(options.programId)
     this.pendingStore = options.pendingStore ?? memoryPendingStore()
     if (options.cluster === 'localnet' && !options.expectedGenesisHash) throw new Error('LOCALNET_REQUIRES_GENESIS_HASH')
@@ -177,7 +208,8 @@ export class PrismSwapClient {
     if (!simulation.value || simulation.value.err) throw new Error('SIMULATION_FAILED:'+JSON.stringify(simulation.value?.err ?? 'malformed result'))
     const input = offerPlanInput(offer,config.feeTreasury,actor)
     const rent = await this.connection.getMinimumBalanceForRentExemption(161+68*(input.makerLegs.length+input.takerLegs.length),'confirmed')
-    const step: PreparedPrismSwapStep = {offer:structuredClone(offer),session:plan.sessionPda,payer:actor,group,transaction,...latest,observedSlot:observed?.slot ?? simulation.context.slot,fees:buildSessionFeeBreakdown({config,makerNftCount:input.makerLegs.length,takerNftCount:input.takerLegs.length,makerSolLamports:input.makerSol,takerSolLamports:input.takerSol,rentLamports:BigInt(rent)}),chainAuthority:'rpc'}
+    const signingPlan = {transactionsInThisStep:1 as const,collectiblesInThisStep:['makerDeposit','takerDeposit','release','withdraw'].includes(group.phase) ? group.slotIndexes.length : 0,knownRemainingTransactions:knownRemainingSessionTransactions(activePlan,state,actor,action,group),additionalTransactionsMayBeRequired:true as const}
+    const step: PreparedPrismSwapStep = {offer:structuredClone(offer),session:plan.sessionPda,payer:actor,group,transaction,...latest,observedSlot:observed?.slot ?? simulation.context.slot,fees:buildSessionFeeBreakdown({config,makerNftCount:input.makerLegs.length,takerNftCount:input.takerLegs.length,makerSolLamports:input.makerSol,takerSolLamports:input.takerSol,rentLamports:BigInt(rent)}),chainAuthority:'rpc',signingPlan}
     preparedGuards.set(step,{message:byteFingerprint(transaction.message.serialize()),semantics:semanticFingerprint(step),state:observed?.fingerprint ?? null,config:config.fingerprint,used:false})
     return step
   }
@@ -191,6 +223,7 @@ export class PrismSwapClient {
       guard.used = true
       if (!wallet.publicKey.equals(step.payer)) throw new Error('WALLET_CHANGED')
       const pending = await this.pendingStore.get(); if (pending) throw new PrismSwapSubmissionError(pending)
+      this.metrics.record('review',step.group.phase)
       if (await review(step) !== true) throw new Error('REVIEW_DECLINED')
       if (byteFingerprint(step.transaction.message.serialize()) !== guard.message || semanticFingerprint(step) !== guard.semantics) throw new Error('TRANSACTION_CHANGED_AFTER_REVIEW')
       await this.assertDomain()
@@ -199,22 +232,26 @@ export class PrismSwapClient {
       const config = await readPrismSwapConfig(this.connection,this.programId)
       if (config.fingerprint !== guard.config) throw new Error('FEES_CHANGED_PREPARE_AGAIN')
       if (await this.connection.getBlockHeight('confirmed') > step.lastValidBlockHeight) throw new Error('BLOCKHASH_EXPIRED_PREPARE_AGAIN')
+      this.metrics.record('walletRequest',step.group.phase)
       const signed = await wallet.signTransaction(VersionedTransaction.deserialize(step.transaction.serialize()))
       if (!wallet.publicKey.equals(step.payer) || byteFingerprint(signed.message.serialize()) !== guard.message) throw new Error('WALLET_CHANGED_TRANSACTION')
       const signatureBytes = signed.signatures[0]
       if (!signatureBytes || signatureBytes.every(b => b === 0)) throw new Error('WALLET_DID_NOT_SIGN')
+      this.metrics.record('signed',step.group.phase)
       const signature = bs58.encode(signatureBytes)
       const receipt: PendingTransaction = {signature,session:step.session.toBase58(),programId:this.programId.toBase58(),cluster:this.options.cluster,group:step.group.label,blockhash:step.blockhash,lastValidBlockHeight:step.lastValidBlockHeight,createdAt:new Date().toISOString()}
       await this.pendingStore.set(receipt) // Failure here stops before broadcast.
       try {
+        this.metrics.record('broadcast',step.group.phase)
         const returned = await this.connection.sendRawTransaction(signed.serialize(),{skipPreflight:false,maxRetries:0,minContextSlot:step.observedSlot})
         if (returned !== signature) throw new Error('RPC_SIGNATURE_MISMATCH')
         const result = await this.connection.confirmTransaction({signature,blockhash:step.blockhash,lastValidBlockHeight:step.lastValidBlockHeight},'confirmed')
         if (result.value.err) throw new Error('TRANSACTION_FAILED:'+JSON.stringify(result.value.err))
         this.minSlots.set(receipt.session,result.context.slot)
         await this.pendingStore.set(null)
+        this.metrics.record('confirmed',step.group.phase)
         return {signature,slot:result.context.slot,authority:'rpc'}
-      } catch (cause) { throw new PrismSwapSubmissionError(receipt,{cause}) }
+      } catch (cause) { this.metrics.record('uncertain',step.group.phase); throw new PrismSwapSubmissionError(receipt,{cause}) }
     } finally { this.busy = false }
   }
   /** Read only. Unknown signatures keep blocking new signing, even after blockhash expiry. */
@@ -227,6 +264,7 @@ export class PrismSwapClient {
     if (!result || result.confirmationStatus === 'processed' || !result.confirmationStatus) return {status:'pending',receipt}
     this.minSlots.set(receipt.session,result.slot)
     await this.pendingStore.set(null)
+    this.metrics.record(result.err ? 'reconciledFailed' : 'reconciledConfirmed')
     return {status:result.err?'failed':'confirmed',receipt,slot:result.slot}
   }
 }
